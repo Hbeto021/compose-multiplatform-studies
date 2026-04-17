@@ -1,0 +1,53 @@
+workflows:
+  ios-workflow:
+    name: iOS Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.hbeto.compose.studies.ComposeMultiplatform
+      vars:
+        XCODE_PROJECT: "iosApp/iosApp.xcodeproj"
+        XCODE_SCHEME: "iosApp"
+      xcode: latest
+      java: 17
+
+    scripts:
+      - name: Set up Gradle permissions
+        script: chmod +x gradlew
+
+      - name: Build shared Kotlin framework
+        script: ./gradlew :composeApp:assembleReleaseXCFramework
+
+      - name: Build iOS app
+        script: |
+          xcodebuild \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -archivePath build/ios/ComposeMultiplatform.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=$CM_TEAM_ID
+
+      - name: Export IPA
+        script: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/ios/ComposeMultiplatform.xcarchive \
+            -exportOptionsPlist /Users/builder/export_options.plist \
+            -exportPath build/ios/output
+
+    artifacts:
+      - build/ios/output/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      email:
+        recipients:
+          - humberto.cesar01@outlook.com
+        notify:
+          success: true
+          failure: true

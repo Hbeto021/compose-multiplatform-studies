@@ -8,7 +8,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.hbeto.compose.studies.ComposeMultiplatform
-        # Nome da integração configurada no Codemagic (Teams > Integrations > App Store Connect)
         app_store_connect: Codemagic
       vars:
         XCODE_PROJECT: "iosApp/iosApp.xcodeproj"
